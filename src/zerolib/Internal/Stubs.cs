@@ -134,6 +134,15 @@ assigningNull:
             *dst = r;
         }
 
+        [RuntimeExport("RhSuppressFinalize")]
+        public static unsafe void RhSuppressFinalize(object obj)
+        {
+            fixed (MethodTable** mt = &obj.m_pMethodTable)
+            {
+                FreeObject(mt);
+            }
+        }
+
         static unsafe MethodTable** AllocObject(uint size)
         {
 #if WINDOWS
@@ -156,6 +165,21 @@ assigningNull:
                 Environment.FailFast(null);
 
             return result;
+        }
+
+        static unsafe void FreeObject(MethodTable** mt)
+        {
+#if WINDOWS
+            [DllImport("kernel32")]
+            static extern MethodTable** LocalFree(MethodTable** ptr);
+            LocalFree(mt);
+#elif LINUX
+            [DllImport("libSystem.Native")]
+            static extern void SystemNative_Free(MethodTable** ptr);
+            SystemNative_Free(mt);
+#elif UEFI
+            StartupCodeHelpers.s_efiSystemTable->BootServices->FreePool((void*)mt);
+#endif
         }
     }
 }
