@@ -149,7 +149,7 @@ namespace Internal.Runtime.CompilerHelpers
         private readonly void* pad3;
         private readonly void* pad4;
         public readonly delegate* unmanaged<int, nint, void**, ulong> AllocatePool;
-        private readonly void* pad6;
+        public readonly delegate*<void*, ulong> FreePool;
         private readonly void* pad7;
         private readonly void* pad8;
         private readonly void* pad9;
